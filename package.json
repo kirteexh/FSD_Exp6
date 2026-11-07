@@ -1,0 +1,23 @@
+{
+  "name": "fsd-experiment-6",
+  "version": "1.0.0",
+  "description": "Experiment 6: Implementation of JWT Authentication and Role-Based Authorization in Event Management System",
+  "scripts": {
+    "seed": "cd backend && node seed.js",
+    "test:auth": "cd backend && node test-auth.js",
+    "backend": "cd backend && node server.js",
+    "frontend": "cd frontend && npm run dev"
+  },
+  "keywords": [
+    "jwt",
+    "rbac",
+    "mern",
+    "mongodb",
+    "express",
+    "react",
+    "nodejs"
+  ],
+  "author": "Kirteesh Rakshe",
+  "license": "ISC"
+}
+

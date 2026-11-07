@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Experiment 6 - JWT Authentication & RBAC Report</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e293b;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1, h2, h3, h4 {
+      color: #0f172a;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      border-bottom: 2px solid #4f46e5;
+      padding-bottom: 0.5rem;
+      font-size: 1.8rem;
+    }
+    h2 {
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 0.3rem;
+      margin-top: 2rem;
+      color: #4f46e5;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 0.6rem 0.85rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      font-weight: 700;
+    }
+    pre {
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      font-family: Consolas, Monaco, monospace;
+    }
+    code {
+      font-family: Consolas, Monaco, monospace;
+      background-color: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #be185d;
+      font-size: 0.9em;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+    .meta-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .badge-admin { background: #fee2e2; color: #b91c1c; }
+    .badge-user { background: #e0f2fe; color: #0369a1; }
+    .page-break { page-break-after: always; }
+  </style>
+</head>
+<body>
+
+  <h1>Experiment No. 6: Implementation of JWT Authentication & Role-Based Authorization</h1>
+
+  <div class="meta-box">
+    <div><strong>Student Name:</strong> Kirteesh Rakshe</div>
+    <div><strong>Course:</strong> Full Stack Development (FSD) Lab</div>
+    <div><strong>Class & Division:</strong> D15A</div>
+    <div><strong>Roll No.:</strong> 43</div>
+    <div><strong>Academic Year:</strong> 3rd Year (Semester VI)</div>
+    <div><strong>Date:</strong> November 7, 2026</div>
+  </div>
+
+  <h2>1. Aim</h2>
+  <p>To implement user authentication using JSON Web Tokens (JWT) and role-based authorization in a web application using React, Node.js, Express.js and MongoDB.</p>
+
+  <h2>2. Problem Statement</h2>
+  <p>Implement a secure authentication system in the existing Event Management System. Develop user registration and login functionality, securely store passwords using cryptographic hashing, generate and verify JWT tokens, and implement role-based access control to restrict access to protected routes and administrative operations. Integrate authentication with the React frontend and test the functionality using Postman.</p>
+
+  <h2>3. Theory Questions & Answers</h2>
+
+  <h3>3.1 What is JWT? Explain its structure and purpose.</h3>
+  <p>A <strong>JSON Web Token (JWT)</strong> is an open industry standard (RFC 7519) for representing claims securely between two parties. It is compact, URL-safe, and digitally signed.</p>
+  <p>A JWT consists of three parts separated by dots (<code>.</code>):</p>
+  <ul>
+    <li><strong>Header:</strong> Specifies token type (<code>JWT</code>) and signing algorithm (e.g. <code>HS256</code>).</li>
+    <li><strong>Payload:</strong> Encodes claims including entity id, user role, issued-at time (<code>iat</code>), and expiration time (<code>exp</code>).</li>
+    <li><strong>Signature:</strong> Generated using HMAC-SHA256 with the server-side secret key to prevent tampering.</li>
+  </ul>
+  <p><strong>Purpose:</strong> Provides stateless authentication so servers do not need to persist session state in database memory.</p>
+
+  <h3>3.2 Differentiate between Authentication and Authorization</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Aspect</th>
+        <th>Authentication (AuthN)</th>
+        <th>Authorization (AuthZ)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Primary Question</strong></td>
+        <td>Who are you? (Identity)</td>
+        <td>What permissions do you have? (Access rights)</td>
+      </tr>
+      <tr>
+        <td><strong>Process</strong></td>
+        <td>Validates credentials (email & password)</td>
+        <td>Evaluates assigned role and permission policies</td>
+      </tr>
+      <tr>
+        <td><strong>Execution Order</strong></td>
+        <td>Always executed first</td>
+        <td>Executed after authentication is verified</td>
+      </tr>
+      <tr>
+        <td><strong>Failure HTTP Code</strong></td>
+        <td><code>401 Unauthorized</code></td>
+        <td><code>403 Forbidden</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3.3 Why are passwords hashed? What is the purpose of bcrypt?</h3>
+  <p>Passwords are hashed because storing plain text creates catastrophic vulnerabilities if the database is leaked. Hashing is a one-way irreversible transformation.</p>
+  <p><strong>bcrypt</strong> is a cryptographic password hashing function with two key protections:</p>
+  <ol>
+    <li><strong>Salting:</strong> Injects a random string before hashing, thwarting dictionary and rainbow-table attacks.</li>
+    <li><strong>Adaptive Work Factor:</strong> An adjustable cost factor (rounds) increases the computation time required to compute hashes, resisting GPU-based brute force attacks.</li>
+  </ol>
+
+  <h3>3.4 Explain the purpose of JWT signing and verification</h3>
+  <p><strong>Signing:</strong> When a user logs in, the backend signs the header and payload with a private secret key (<code>JWT_SECRET</code>). No third party can forge this signature without the secret.</p>
+  <p><strong>Verification:</strong> On every request, the backend extracts the token, recalculates the signature using its secret, and compares it with the token's signature. If any payload data (e.g. changing <code>role</code> to <code>admin</code>) was modified, verification fails immediately.</p>
+
+  <h3>3.5 What is middleware in Express.js? Explain its role in JWT authentication</h3>
+  <p>In Express.js, middleware functions have access to the request object (<code>req</code>), response object (<code>res</code>), and the <code>next()</code> callback function.</p>
+  <p>In JWT authentication, the <code>protect</code> middleware intercepts requests to protected routes, parses <code>req.headers.authorization</code>, verifies the JWT token with <code>jwt.verify</code>, queries the database for user data, attaches the user to <code>req.user</code>, and calls <code>next()</code> to proceed. If verification fails, it sends a <code>401 Unauthorized</code> response.</p>
+
+  <h3>3.6 What is the purpose of Bearer Token in the Authorization header?</h3>
+  <p>The <code>Bearer</code> token scheme conforms to RFC 6750. Sending the token in <code>Authorization: Bearer &lt;token&gt;</code> adheres to REST best practices, decouples credentials from request bodies or URL parameters, and simplifies cross-origin resource sharing (CORS).</p>
+
+  <h3>3.7 Differentiate between HTTP status codes 401 and 403</h3>
+  <ul>
+    <li><strong>401 Unauthorized:</strong> The user has not provided authentication credentials, or the credentials/token supplied are invalid or expired.</li>
+    <li><strong>403 Forbidden:</strong> The server knows the user's identity, but the user does not possess the permissions/role necessary to access the requested resource.</li>
+  </ul>
+
+  <h3>3.8 What is Role-Based Access Control (RBAC)?</h3>
+  <p>RBAC is an access management approach where permissions are granted to roles rather than individuals. Users are assigned roles (such as <code>admin</code> or <code>user</code>), and endpoints enforce policies based on the authenticated user's role.</p>
+
+  <h2>4. Postman & Role-Based Authorization Testing Evidence</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Method & Route</th>
+        <th>Header / Body</th>
+        <th>Expected Response Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. User Registration</strong></td>
+        <td><code>POST /api/auth/register</code></td>
+        <td>JSON: name, email, password, role</td>
+        <td><code>201 Created</code> (returns token + user)</td>
+      </tr>
+      <tr>
+        <td><strong>2. User Login</strong></td>
+        <td><code>POST /api/auth/login</code></td>
+        <td>JSON: email, password</td>
+        <td><code>200 OK</code> (returns JWT token)</td>
+      </tr>
+      <tr>
+        <td><strong>3. Token Verification</strong></td>
+        <td><code>GET /api/auth/me</code></td>
+        <td><code>Authorization: Bearer &lt;user_token&gt;</code></td>
+        <td><code>200 OK</code> (returns user profile)</td>
+      </tr>
+      <tr>
+        <td><strong>4. Invalid Login</strong></td>
+        <td><code>POST /api/auth/login</code></td>
+        <td>JSON: incorrect password</td>
+        <td><code>401 Unauthorized</code></td>
+      </tr>
+      <tr>
+        <td><strong>5. No Token Access</strong></td>
+        <td><code>GET /api/auth/me</code></td>
+        <td>No Authorization Header</td>
+        <td><code>401 Unauthorized</code></td>
+      </tr>
+      <tr>
+        <td><strong>6. User accessing Admin endpoint</strong></td>
+        <td><code>GET /api/admin/dashboard</code></td>
+        <td><code>Authorization: Bearer &lt;user_token&gt;</code></td>
+        <td><code>403 Forbidden</code></td>
+      </tr>
+      <tr>
+        <td><strong>7. Admin accessing Admin endpoint</strong></td>
+        <td><code>GET /api/admin/dashboard</code></td>
+        <td><code>Authorization: Bearer &lt;admin_token&gt;</code></td>
+        <td><code>200 OK</code> (returns analytics)</td>
+      </tr>
+      <tr>
+        <td><strong>8. MongoDB Users View</strong></td>
+        <td><code>node view-users.js</code></td>
+        <td>Inspect stored records & roles</td>
+        <td>Displays admin and user accounts</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>5. How to Run and Test</h2>
+  <ol>
+    <li>Start Backend: <code>cd backend && node server.js</code> (runs on port 5000)</li>
+    <li>Run Automated Test Suite: <code>cd backend && node test-auth.js</code></li>
+    <li>Start React Frontend: <code>cd frontend && npm run dev</code> (open http://localhost:3000)</li>
+    <li>Import Postman collection: <code>backend/Event_Management_Auth_RBAC.postman_collection.json</code></li>
+  </ol>
+
+</body>
+</html>
+
